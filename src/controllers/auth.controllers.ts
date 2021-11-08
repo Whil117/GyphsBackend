@@ -44,19 +44,16 @@ router.post('/login', async (req: Request, res: Response) => {
   try {
     const user = await Register.findOne({ username: username })
     if (!user) {
-      return res
-        .status(404)
-        .send({
-          authentication: false,
-          type: 'login',
-          message: 'user no logger',
-        })
+      return res.status(404).send({
+        authentication: false,
+        type: 'login',
+        message: 'user no logger',
+      })
     }
     const passvalid = await user.validPass(password)
     if (!passvalid) {
       return res.status(401).json({
         authentication: false,
-        token: null,
         message: 'password-incorrect',
       })
     }
