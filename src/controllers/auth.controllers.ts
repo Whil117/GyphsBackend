@@ -7,6 +7,12 @@ dotenv.config()
 const Register = require('../models/sign.models')
 const router = Express.Router()
 
+//Get sign
+
+router.get('/sign', async (req: Request, res: Response) => {
+  res.status(200).json({ message: 'sign isnt allow method get, only post' })
+})
+
 //POST Sign
 router.post('/sign', async (req: Request, res: Response) => {
   const register = new Register({
@@ -14,13 +20,15 @@ router.post('/sign', async (req: Request, res: Response) => {
   })
   const user = await Register.findOne({ username: register.username })
   if (user) {
-    res
-      .status(405)
-      .json({ authentication: false, type: 'sign', message: 'user registred' })
+    res.status(405).json({
+      authentication: false,
+      type: 'sign',
+      message: 'Error: user registred',
+    })
     return
   }
   try {
-    register.password = await register.encryptPassword(register?.password)
+    register.password = await register.hashSync(register?.password)
     await register.save()
     const token = jwt.sign({ id: register._id }, KeyJwt())
     res.status(200).json({
@@ -31,6 +39,7 @@ router.post('/sign', async (req: Request, res: Response) => {
       },
       type: 'Sign',
       token,
+      message: 'User registred successfully',
     })
   } catch (error) {
     console.log(error)
@@ -47,10 +56,10 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(404).send({
         authentication: false,
         type: 'login',
-        message: 'user no logger',
+        message: 'user no logged',
       })
     }
-    const passvalid = await user.validPass(password)
+    const passvalid = await user.compareSync(password)
     if (!passvalid) {
       return res.status(401).json({
         authentication: false,
@@ -62,9 +71,11 @@ router.post('/login', async (req: Request, res: Response) => {
       authentication: true,
       type: 'Login',
       user: {
+        id: user._id,
         username,
       },
       token,
+      message: 'User logged successfully',
     })
   } catch (error) {
     console.log(error)

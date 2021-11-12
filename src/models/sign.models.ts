@@ -19,11 +19,11 @@ const User = new mongoose.Schema<IUser>({
   },
 })
 
-User.methods.encryptPassword = async (password) => {
+User.methods.hashSync = async (password: string) => {
   const salt = await bcryptjs.genSaltSync(10)
   return bcryptjs.hashSync(password, salt)
 }
-User.methods.validPass = function (password: string) {
+User.methods.compareSync = function (password: string) {
   return bcryptjs.compareSync(password, this.password)
 }
 
